@@ -4,7 +4,7 @@
  */
 
 #ifdef LOG_LEVEL
-#  undef LOG_LEVEL
+#undef LOG_LEVEL
 #endif /* LOG_LEVEL */
 
 #define LOG_LEVEL LOG_LEVEL_INFO
@@ -27,7 +27,8 @@
 #include <math.h>
 
 /* struct to bundle some global variable */
-typedef struct test_vars {
+typedef struct test_vars
+{
     char *values[N_TEST_ENTRIES];
     char *values_cc[N_TEST_ENTRIES];
     list_t *list;
@@ -40,14 +41,17 @@ typedef struct test_vars {
 static test_vars_t TV = {};
 
 /* wrap free to track calls by reference done by list_destroy */
-static void track_free_rd(void *val) {
+static void track_free_rd(void *val)
+{
     track_free(val, &TV.dealloc_stats);
 }
 
-static int init_TV() {
+static int init_TV()
+{
     /* set up the test-values */
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
-        int val = RANDOMIZE_VALUES ? rand() : (int) i;
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
+        int val = RANDOMIZE_VALUES ? rand() : (int)i;
         char buf[0x7f];
         snprintf(buf, 0x7f, "%d", val);
 
@@ -56,32 +60,37 @@ static int init_TV() {
     }
 
     pr_info("- Created %d test-entries -\n", N_TEST_ENTRIES);
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         pr_info("\"%s\"%s", TV.values[i], (i == N_TEST_ENTRIES - 1) ? "]\n" : ", ");
 
-        if (!PRINT_ALL_TEST_VALUES && N_TEST_ENTRIES > 16 && i == 9) {
+        if (!PRINT_ALL_TEST_VALUES && N_TEST_ENTRIES > 16 && i == 9)
+        {
             pr_info("..., ");
             i = N_TEST_ENTRIES - 3;
         }
     }
     pr_info("\n");
 
-    dealloc_stats_init(&TV.dealloc_stats, (void **) TV.values, N_TEST_ENTRIES);
+    dealloc_stats_init(&TV.dealloc_stats, (void **)TV.values, N_TEST_ENTRIES);
 
     return 0;
 }
 
-static int test_list_create() {
+static int test_list_create()
+{
     TEST_BEGIN(++TV.testno, TV.n_tests, "[cmpfn=`strcmp`]", list_create);
-    TV.list = list_create((cmp_fn) strcmp);
+    TV.list = list_create((cmp_fn)strcmp);
     TEST_ASSERT_OK(TV.list != NULL, "expected pointer to list");
 
     return 0;
 }
 
-static int test_list_add_pop_last() {
+static int test_list_add_pop_last()
+{
     TEST_BEGIN(++TV.testno, TV.n_tests, "", list_addlast, list_contains);
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         char *item = TV.values[i];
         int rc = list_addlast(TV.list, item);
         TEST_ASSERT(rc == 0,
@@ -101,7 +110,8 @@ static int test_list_add_pop_last() {
     TEST_OK();
 
     TEST_BEGIN(++TV.testno, TV.n_tests, "[All added values]", list_poplast, list_contains);
-    for (size_t i = N_TEST_ENTRIES; i > 0; i--) {
+    for (size_t i = N_TEST_ENTRIES; i > 0; i--)
+    {
         char *fnd = list_poplast(TV.list);
         char *exp = TV.values[i - 1];
         TEST_ASSERT(fnd == exp,
@@ -119,9 +129,11 @@ static int test_list_add_pop_last() {
     return 0;
 }
 
-static int test_list_add_pop_first() {
+static int test_list_add_pop_first()
+{
     TEST_BEGIN(++TV.testno, TV.n_tests, "", list_addfirst, list_contains);
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         int rc = list_addfirst(TV.list, TV.values[i]);
         TEST_ASSERT(rc == 0,
                     "list_addfirst failed. "
@@ -140,7 +152,8 @@ static int test_list_add_pop_first() {
     TEST_OK();
 
     TEST_BEGIN(++TV.testno, TV.n_tests, "[All added values]", list_popfirst, list_length);
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         size_t val_i = N_TEST_ENTRIES - 1 - i;
         char *fnd = list_popfirst(TV.list);
         char *exp = TV.values[val_i];
@@ -158,18 +171,23 @@ static int test_list_add_pop_first() {
     return 0;
 }
 
-static int test_list_cmpfn_and_sort() {
+static int test_list_cmpfn_and_sort()
+{
     TEST_BEGIN(++TV.testno, TV.n_tests, "[correct cmpfn use]", list_contains);
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         char *item = TV.values[i];
         char *item_cc = TV.values_cc[i];
 
-        if (i % 2 == 0) {
+        if (i % 2 == 0)
+        {
             TEST_ASSERT(list_addfirst(TV.list, item) == 0,
                         "list_addfirst failed. "
                         "value no. %zu - item: \"%s\"",
                         i, item);
-        } else {
+        }
+        else
+        {
             TEST_ASSERT(list_addlast(TV.list, item) == 0,
                         "list_addlast failed. "
                         "value no. %zu - item: \"%s\"",
@@ -191,7 +209,8 @@ static int test_list_cmpfn_and_sort() {
         /* modify the string, and compare again. it should be found, as list should just hold a reference. */
         char *c = item;
         size_t len = 0;
-        while (*c) {
+        while (*c)
+        {
             *c = 'X';
             len++;
             c++;
@@ -217,10 +236,12 @@ static int test_list_cmpfn_and_sort() {
 
     TEST_BEGIN(++TV.testno, TV.n_tests, "[pointer/cmpfn usage]", list_contains);
     /* randomize all test-values, and ensure they are still found */
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         char *c = TV.values[i];
         /* replace each character in val with a random lowercase character */
-        while (*c) {
+        while (*c)
+        {
             *c = 'a' + rand() % ('z' - 'a');
             c++;
         }
@@ -239,7 +260,8 @@ static int test_list_cmpfn_and_sort() {
     char *prev = NULL;
 
     /* randomize all string values */
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         char *item = list_popfirst(TV.list);
         TEST_ASSERT(item != NULL,
                     "list_popfirst failed to return an item. "
@@ -263,10 +285,12 @@ static int test_list_cmpfn_and_sort() {
     return 0;
 }
 
-static int test_list_destroy() {
+static int test_list_destroy()
+{
     TEST_BEGIN(++TV.testno, TV.n_tests, "[val_freefn=`free`]", list_destroy);
 
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         int rc = list_addfirst(TV.list, TV.values[i]);
         TEST_ASSERT(rc == 0,
                     "list_addfirst failed. "
@@ -288,41 +312,47 @@ static int test_list_destroy() {
     TEST_OK();
 
     /* clean up copied values */
-    for (size_t i = 0; i < N_TEST_ENTRIES; i++) {
+    for (size_t i = 0; i < N_TEST_ENTRIES; i++)
+    {
         free(TV.values_cc[i]);
     }
 
     return 0;
 }
 
-int test_interface_list() {
+int test_interface_list()
+{
     assert(N_TEST_ENTRIES >= 1);
     assert(N_TEST_ENTRIES < INT32_MAX);
 
     pr_info("--- Beginning list test, N_TEST_ENTRIES = %d ---\n", N_TEST_ENTRIES);
 
-    if (init_TV()) {
+    if (init_TV())
+    {
         pr_error(
             "Failed to allocate memory for the test values. If N_TEST_ENTRIES is very large, lower it.\n");
         return -1;
     }
 
     const test_group_t test_groups[] = {
-        {        test_list_create, 1},
-        {  test_list_add_pop_last, 2},
-        { test_list_add_pop_first, 2},
+        {test_list_create, 1},
+        {test_list_add_pop_last, 2},
+        {test_list_add_pop_first, 2},
         {test_list_cmpfn_and_sort, 3},
-        {       test_list_destroy, 1},
+        {test_list_destroy, 1},
     };
 
     size_t n_test_groups = (sizeof(test_groups) / sizeof(test_group_t));
 
-    for (size_t i = 0; i < n_test_groups; i++) {
+    for (size_t i = 0; i < n_test_groups; i++)
+    {
         TV.n_tests += test_groups[i].n_subtests;
     }
 
-    for (size_t i = 0; i < n_test_groups; i++) {
-        if (test_groups[i].test_group_fn()) {
+    for (size_t i = 0; i < n_test_groups; i++)
+    {
+        if (test_groups[i].test_group_fn())
+        {
             return -1;
         }
     }

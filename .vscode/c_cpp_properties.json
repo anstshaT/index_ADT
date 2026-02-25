@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "name": "Mac",
+      "includePath": [
+        "${workspaceFolder}/include"
+      ],
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "c23"
+    }
+  ],
+  "version": 4
+}

@@ -1,6 +1,6 @@
 /**
  * @authors
- * Steffen Viken Valvaag <steffenv@cs.uit.no> 
+ * Steffen Viken Valvaag <steffenv@cs.uit.no>
  * Odin Bjerke <odin.bjerke@uit.no>
  */
 
@@ -87,7 +87,6 @@ int list_contains(list_t *list, void *item);
  * @note Items are sorted in `descending` order, meaning each element is `<=` than the next.
  */
 void list_sort(list_t *list);
-
 
 /**
  * Type of list iterator. `list_iter_t` is an alias for `struct list_iter`

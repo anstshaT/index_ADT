@@ -25,9 +25,18 @@ struct list_iter
     lnode_t *node;
 };
 
-// TODO Find out for what we use this
 static lnode_t *newnode(void *item)
 {
+    lnode_t *node = malloc(sizeof(lnode_t));
+
+    if (!node)
+        return NULL;
+
+    node->item = item;
+    node->prev = NULL;
+    node->next = NULL;
+
+    return node;
 }
 
 list_t *list_create(cmp_fn cmpfn)
@@ -88,27 +97,25 @@ int list_addfirst(list_t *list, void *item)
     if (!list || !item)
         return -22;
 
-    lnode_t *new_node = malloc(sizeof(lnode_t));
+    lnode_t *node = newnode(item);
     lnode_t *current = list->head;
 
-    if (!new_node)
+    if (!node)
         return -12;
 
     if (list->head == NULL)
     {
-        list->head = new_node;
-        list->tail = new_node;
-        new_node->prev = NULL;
-        new_node->next = NULL;
-        new_node->item = item;
+        list->head = node;
+        list->tail = node;
+        node->prev = NULL;
+        node->next = NULL;
     }
     else
     {
-        current->prev = new_node;
-        new_node->next = current;
-        new_node->prev = NULL;
-        new_node->item = item;
-        list->head = new_node;
+        current->prev = node;
+        node->next = current;
+        node->prev = NULL;
+        list->head = node;
     }
 
     return 0;
@@ -119,7 +126,7 @@ int list_addlast(list_t *list, void *item)
     if (!list || !item)
         return -22;
 
-    lnode_t *new_node = malloc(sizeof(lnode_t));
+    lnode_t *new_node = newnode(item);
     lnode_t *current = list->tail;
 
     if (!new_node)
@@ -131,14 +138,12 @@ int list_addlast(list_t *list, void *item)
         list->tail = new_node;
         new_node->next = NULL;
         new_node->prev = NULL;
-        new_node->item = item;
     }
     else
     {
         current->next = new_node;
         new_node->next = NULL;
         new_node->prev = current;
-        new_node->item = item;
         list->tail = new_node;
     }
 
@@ -220,6 +225,7 @@ int list_contains(list_t *list, void *item)
     return 0;
 }
 
+// TODO implement
 void list_sort(list_t *list)
 {
 }
@@ -272,4 +278,5 @@ void *list_next(list_iter_t *iter)
 // TODO Implemet this. Reset iter to the firt item in the list
 void list_resetiter(list_iter_t *iter)
 {
+    iter->node = iter->list->head;
 }

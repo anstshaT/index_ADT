@@ -162,6 +162,8 @@ void *map_remove(map_t *map, void *key)
 
     uint64_t hash = map->hashfn(key);
     node_t *current = map->array[hash];
+    node_t *old_node;
+    void *old_value;
 
     if (!current) // empty, key not exist
         return NULL;
@@ -172,15 +174,40 @@ void *map_remove(map_t *map, void *key)
         {
             if (strcmp((char *)current->key, (char *)key) == 0)
             {
-                if (current->next)
+                if (current->next) // if its three or more nodes
                 {
-                    node_t *old_node = current;
-                                }
+                    old_node = current;
+                    current = current->next;
+                    current->prev = old_node->prev;
+                    if (old_node->prev != NULL)
+                        old_node->prev->next = current;
+                    else
+                        map->array[hash] = current;
+                    old_value = old_node->value;
+                    free(old_node);
+                    return old_value;
+                }
+                // if its last nodes
+                old_node = current;
+                if (old_node->prev != NULL)
+                {
+                    current = current->prev;
+                    current->next = NULL;
+                }
+                else
+                    map->array[hash] = NULL;
+                old_value = old_node->value;
+                free(old_node);
+                return old_value;
             }
             current = current->next;
         }
         return NULL;
     }
+    old_value = current->value;
+    free(current);
+    map->array[hash] = NULL;
+    return old_value;
 }
 
 void *map_get(map_t *map, void *key)

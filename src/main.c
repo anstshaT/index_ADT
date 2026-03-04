@@ -31,6 +31,7 @@
 #define ARG_TEST "--test"
 #define ARG_FPATH "--fpath="
 #define CLI_CMD_EXIT ".exit"
+#define TABLE_CAPACITY 101
 
 /**
  * @brief Enter the interactive part of the program.
@@ -109,6 +110,20 @@ static int enter_interactive_cli(map_t *freq_map)
 
     printf("\nExiting ..\n");
     return 0;
+}
+
+hash64_fn hash_func(void *key)
+{
+    uint64_t h;
+    char *k = key;
+    int a = 31415;
+    int b = 271183;
+    for (h = 0; *k != '\0'; k++, a = (a * b) % (TABLE_CAPACITY - 1))
+    {
+        h = (a * h + *k) % TABLE_CAPACITY;
+    }
+
+    return h;
 }
 
 /**

@@ -1,6 +1,7 @@
 #include "list.h"
 #include "printing.h"
 
+#include <malloc/_malloc_type.h>
 #include <stdlib.h>
 
 typedef struct lnode lnode_t;
@@ -225,9 +226,23 @@ int list_contains(list_t *list, void *item)
     return 0;
 }
 
-// TODO implement
+static lnode_t *merge_sort(lnode_t *head, cmp_fn cmpfn);
+
 void list_sort(list_t *list)
 {
+    if (!list || !list->head)
+        return;
+
+    list->head = merge_sort(list->head, list->cmpfn);
+
+    lnode_t *current = list->head;
+    current->prev = NULL;
+    while (current->next != NULL)
+    {
+        current->next->prev = current;
+        current = current->next;
+    }
+    list->tail = current;
 }
 
 list_iter_t *list_createiter(list_t *list)
@@ -275,8 +290,50 @@ void *list_next(list_iter_t *iter)
     return current->item;
 }
 
-// TODO Implemet this. Reset iter to the firt item in the list
 void list_resetiter(list_iter_t *iter)
 {
     iter->node = iter->list->head;
 }
+
+static lnode_t *merge_sort(lnode_t *head, cmp_fn cmpfn)
+{
+    if (!head || !head->next)
+        return head;
+
+    lnode_t *a = head;
+    lnode_t *b = head->next->next;
+
+    while (a && b->next)
+    {
+        a = a->next;
+        b = b->next->next;
+    }
+
+    lnode_t *mid = a->next;
+    a->next = NULL;
+
+    lnode_t *first = merge_sort(head, cmpfn);
+    lnode_t *second = merge_sort(mid, cmpfn);
+
+    lnode_t rtn[1], *tail = rtn;
+
+    while (first && second)
+    {
+        if (cmpfn(first->item, second->item) > 0)
+        {
+            tail->next = first;
+            first = first->next;
+        }
+        else
+        {
+            tail->next = second;
+            second = second->next;
+        }
+
+        tail = tail->next;
+    }
+
+    tail->next = first ? first : second;
+
+    return rtn->next;
+};

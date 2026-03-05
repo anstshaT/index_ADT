@@ -1,7 +1,7 @@
 
 #include "map.h"
 #include "defs.h"
-#include <cstring>
+#include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -133,7 +133,7 @@ void *map_insert(map_t *map, void *key, size_t key_size, void *value)
 
     node_t *new = nodepair(key, value, key_size);
 
-    int hash = map->hashfn(key);
+    uint64_t hash = map->hashfn(key);
     node_t *current = map->array[hash];
 
     while (current != NULL)
@@ -212,4 +212,20 @@ void *map_remove(map_t *map, void *key)
 
 void *map_get(map_t *map, void *key)
 {
+    if (!map || !key)
+        return NULL;
+
+    uint64_t hash = map->hashfn(key);
+    node_t *current = map->array[hash];
+
+    while (current != NULL)
+    {
+        if (strcmp((char *)current->key, (char *)key) == 0)
+        {
+            return current->value;
+        }
+        current = current->next;
+    }
+
+    return NULL;
 }

@@ -112,10 +112,11 @@ static int enter_interactive_cli(map_t *freq_map)
     return 0;
 }
 
-hash64_fn hash_func(void *key)
+// hashing function
+uint64_t hash_func(const void *key)
 {
     uint64_t h;
-    char *k = key;
+    const char *k = key;
     int a = 31415;
     int b = 271183;
     for (h = 0; *k != '\0'; k++, a = (a * b) % (TABLE_CAPACITY - 1))
@@ -136,8 +137,45 @@ hash64_fn hash_func(void *key)
  */
 static map_t *create_termfreq_map(list_t *terms)
 {
-    // TODO implement function
-    pr_error("main.c: Function create_termfreq_map not implemented.\n");
+    map_t *map = map_create((cmp_fn)strcmp, hash_func);
+
+    if (!map)
+        return NULL;
+
+    list_iter_t *iter = list_createiter(terms);
+    if (!iter)
+    {
+        map_destroy(map, free);
+        return NULL;
+    }
+
+    while (list_hasnext(iter))
+    {
+        char *word = list_next(iter);
+        uint32_t *freq = map_get(map, word);
+
+        if (freq != NULL)
+        {
+            (*freq)++;
+        }
+        else
+        {
+            uint32_t *new_freq = malloc(sizeof(uint32_t));
+
+            if (!new_freq)
+            {
+                list_destroyiter(iter);
+                map_destroy(map, free);
+                return NULL;
+            }
+
+            *new_freq = 1;
+            map_insert(map, word, strlen(word) + 1, new_freq);
+        }
+    }
+
+    list_destroyiter(iter);
+    return map;
 }
 
 /**

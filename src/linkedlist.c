@@ -303,7 +303,7 @@ static lnode_t *merge_sort(lnode_t *head, cmp_fn cmpfn)
     lnode_t *a = head;
     lnode_t *b = head->next->next;
 
-    while (a && b->next)
+    while (b && b->next)
     {
         a = a->next;
         b = b->next->next;
@@ -319,7 +319,7 @@ static lnode_t *merge_sort(lnode_t *head, cmp_fn cmpfn)
 
     while (first && second)
     {
-        if (cmpfn(first->item, second->item) > 0)
+        if (cmpfn(first->item, second->item) <= 0)
         {
             tail->next = first;
             first = first->next;

@@ -27,9 +27,11 @@
 #include <limits.h>
 #include <math.h>
 #include <unistd.h>
+#include <time.h>
 
 #define ARG_TEST "--test"
 #define ARG_FPATH "--fpath="
+#define ARG_BENCHMARK "--benchmark"
 #define CLI_CMD_EXIT ".exit"
 #define TABLE_CAPACITY 101
 
@@ -125,6 +127,43 @@ uint64_t hash_func(const void *key)
     }
 
     return h;
+}
+
+static void run_benchmark(void)
+{
+    int sizes[] = {100, 500, 1000, 5000, 10000, 50000, 100000};
+    int n_sizes = 7;
+    int searches = 1000;
+    char key[64];
+
+    printf("n,tid_ms\n");
+
+    for (int s = 0; s < n_sizes; s++)
+    {
+        int n = sizes[s];
+
+        map_t *m = map_create((cmp_fn)strcmp, hash_func);
+        for (int i = 0; i < n; i++)
+        {
+            sprintf(key, "ord_%d", i);
+            int *v = malloc(sizeof(int));
+            *v = i;
+            map_insert(m, key, strlen(key) + 1, v);
+        }
+
+        clock_t start = clock();
+        for (int i = 0; i < searches; i++)
+        {
+            sprintf(key, "ord_%d", rand() % n);
+            map_get(m, key);
+        }
+        clock_t end = clock();
+
+        double ms = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;
+        printf("%d,%.6f\n", n, ms);
+
+        map_destroy(m, free);
+    }
 }
 
 /**
@@ -267,8 +306,9 @@ static int app_run_tests()
  */
 static void print_usage(char **argv)
 {
-    fprintf(stderr, "Usage: ./%s [%s, %s<fpath>]\n", basename(argv[0]), ARG_TEST, ARG_FPATH);
+    fprintf(stderr, "Usage: ./%s [%s, %s, %s<fpath>]\n", basename(argv[0]), ARG_TEST, ARG_BENCHMARK, ARG_FPATH);
     fprintf(stderr, "* `%s`: If this flag is present, `test_map` is run.\n", ARG_TEST);
+    fprintf(stderr, "* `%s`: Run benchmarks, prints CSV to stdout.\n", ARG_BENCHMARK);
     fprintf(stderr,
             "* `%s<fpath>`: Build a map of terms from the content of the file, then enter "
             "interactive mode.\n",
@@ -285,7 +325,7 @@ static void print_usage(char **argv)
  * @param flag_fpath: will be set to a path if ARG_FPATH was found
  * @returns 0 on success, or a negative status code on failure.
  */
-static int parse_args(int argc, char **argv, int *flag_tests, char **flag_fpath)
+static int parse_args(int argc, char **argv, int *flag_tests, int *flag_benchmark, char **flag_fpath)
 {
     if (argc < 2 || argc > 3)
     {
@@ -298,6 +338,10 @@ static int parse_args(int argc, char **argv, int *flag_tests, char **flag_fpath)
         if (strcmp(argv[i], ARG_TEST) == 0)
         {
             *flag_tests = 1;
+        }
+        else if (strcmp(argv[i], ARG_BENCHMARK) == 0)
+        {
+            *flag_benchmark = 1;
         }
         else if (strncmp(argv[i], ARG_FPATH, sizeof(ARG_FPATH) - 1) == 0)
         {
@@ -321,9 +365,10 @@ static int parse_args(int argc, char **argv, int *flag_tests, char **flag_fpath)
 int main(int argc, char **argv)
 {
     int flag_run_tests = 0;
+    int flag_benchmark = 0;
     char *flag_fpath = NULL;
 
-    int args_error = parse_args(argc, argv, &flag_run_tests, &flag_fpath);
+    int args_error = parse_args(argc, argv, &flag_run_tests, &flag_benchmark, &flag_fpath);
 
     if (args_error)
     {
@@ -336,6 +381,12 @@ int main(int argc, char **argv)
     if (flag_run_tests && app_run_tests() < 0)
     {
         return 4;
+    }
+
+    if (flag_benchmark)
+    {
+        run_benchmark();
+        return 0;
     }
 
     /* run the interactive command line app, if a fpath arg was specified. */

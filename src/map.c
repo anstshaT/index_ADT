@@ -38,7 +38,7 @@ map_t *map_create(cmp_fn cmpfn, hash64_fn hashfn)
     table->length = 0;
     table->cmpfn = cmpfn;
     table->hashfn = hashfn;
-    table->array = malloc(table->capacity * sizeof(node_t));
+    table->array = calloc(table->capacity, sizeof(node_t *));
 
     return table;
 }
@@ -133,7 +133,7 @@ void *map_insert(map_t *map, void *key, size_t key_size, void *value)
 
     node_t *new = nodepair(key, value, key_size);
 
-    uint64_t hash = map->hashfn(key);
+    uint64_t hash = map->hashfn(key) % map->capacity;
     node_t *current = map->array[hash];
 
     while (current != NULL)
@@ -142,6 +142,7 @@ void *map_insert(map_t *map, void *key, size_t key_size, void *value)
         {
             void *old_val = current->value;
             current->value = value;
+            free(new->key);
             free(new);
             return old_val;
         }
@@ -160,7 +161,7 @@ void *map_remove(map_t *map, void *key)
     if (!map || !key)
         return NULL;
 
-    uint64_t hash = map->hashfn(key);
+    uint64_t hash = map->hashfn(key) % map->capacity;
     node_t *current = map->array[hash];
     node_t *old_node;
     void *old_value;
@@ -215,7 +216,7 @@ void *map_get(map_t *map, void *key)
     if (!map || !key)
         return NULL;
 
-    uint64_t hash = map->hashfn(key);
+    uint64_t hash = map->hashfn(key) % map->capacity;
     node_t *current = map->array[hash];
 
     while (current != NULL)
